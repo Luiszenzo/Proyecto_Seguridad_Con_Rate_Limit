@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>Login</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Login</button>
+            </form>
+            <div id="mfaContainer" class="hidden">
+                <h2>Two-Factor Authentication</h2>
+                <p>Please enter the verification code from your authenticator app:</p>
+                <div class="form-group">
+                    <input type="text" id="mfaCode" name="mfaCode" placeholder="Enter code" required>
+                </div>
+                <button id="verifyMfaBtn" class="btn">Verify</button>
+            </div>
+            <div class="form-footer">
+                <p>Don't have an account? <a href="register.html">Register here</a></p>
+            </div>
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>

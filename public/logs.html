@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logs Analytics</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .dashboard {
+            padding: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            padding: 8px 16px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            background-color: #0056b3;
+        }
+        .chart-container {
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>Logs Analytics</h1>
+            <button id="logoutBtn" class="btn logout-btn">Logout</button>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="logs.html" class="nav-link">Logs Analytics</a>
+        </div>
+        
+        <div class="card">
+            <h2>Log Levels Distribution</h2>
+            <div class="chart-container">
+                <canvas id="logLevelsChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Status Code Distribution</h2>
+            <div class="chart-container">
+                <canvas id="statusCodeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Fetch logs for analytics
+            fetch('http://localhost:3001/logs')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length === 0) {
+                        document.querySelector('.chart-container').innerHTML = 'No logs available for analysis.';
+                        return;
+                    }
+                    
+                    // Process log data for charts
+                    const eventTypes = {};
+                    const statusCodes = {};
+                    
+                    data.forEach(log => {
+                        // Count event types
+                        if (log.eventType) {
+                            eventTypes[log.eventType] = (eventTypes[log.eventType] || 0) + 1;
+                        }
+                        
+                        // Count status codes
+                        if (log.statusCode) {
+                            statusCodes[log.statusCode] = (statusCodes[log.statusCode] || 0) + 1;
+                        }
+                    });
+                    
+                    // Create event types chart
+                    const eventTypesCtx = document.getElementById('logLevelsChart').getContext('2d');
+                    new Chart(eventTypesCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(eventTypes),
+                            datasets: [{
+                                label: 'Number of Logs by Event Type',
+                                data: Object.values(eventTypes),
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.7)',
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(255, 206, 86, 0.7)',
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)',
+                                    'rgba(255, 159, 64, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // Create status codes chart
+                    const statusCodesCtx = document.getElementById('statusCodeChart').getContext('2d');
+                    new Chart(statusCodesCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: Object.keys(statusCodes),
+                            datasets: [{
+                                label: 'Number of Logs by Status Code',
+                                data: Object.values(statusCodes),
+                                backgroundColor: [
+                                    'rgba(75, 192, 192, 0.7)',
+                                    'rgba(255, 99, 132, 0.7)',
+                                    'rgba(54, 162, 235, 0.7)',
+                                    'rgba(255, 206, 86, 0.7)',
+                                    'rgba(153, 102, 255, 0.7)',
+                                    'rgba(255, 159, 64, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(153, 102, 255, 1)',
+                                    'rgba(255, 159, 64, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        precision: 0
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching logs for analytics:', error);
+                    document.querySelector('.chart-container').innerHTML = 'Failed to load log data for analysis.';
+                });
+            
+            // Handle logout
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+</body>
+</html>

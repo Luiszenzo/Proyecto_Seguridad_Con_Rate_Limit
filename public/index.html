@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard {
+            padding: 30px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            padding: 8px 16px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .nav-link {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .nav-link:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>Welcome to the Dashboard</h1>
+            <button id="logoutBtn" class="btn logout-btn">Logout</button>
+        </div>
+        
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Dashboard</a>
+            <a href="logs.html" class="nav-link">Logs Analytics</a>
+        </div>
+        
+        <div class="card">
+            <h2>System Information</h2>
+            <div id="systemInfo">Loading...</div>
+        </div>
+        
+        <div class="card">
+            <h2>Recent Logs</h2>
+            <div id="logs">Loading...</div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // Fetch system info
+            fetch('http://localhost:3001/getInfo')
+                .then(response => response.json())
+                .then(data => {
+                    const infoDiv = document.getElementById('systemInfo');
+                    infoDiv.innerHTML = `
+                        <p><strong>Node Version:</strong> ${data.nodeVersion}</p>
+                        <p><strong>Student:</strong> ${data.student.fullName}</p>
+                        <p><strong>Group:</strong> ${data.student.group}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error fetching system info:', error);
+                    document.getElementById('systemInfo').textContent = 'Failed to load system information.';
+                });
+            
+            // Fetch logs
+            fetch('http://localhost:3001/logs')
+                .then(response => response.json())
+                .then(data => {
+                    const logsDiv = document.getElementById('logs');
+                    if (data.length === 0) {
+                        logsDiv.textContent = 'No logs available.';
+                        return;
+                    }
+                    
+                    const logsList = document.createElement('ul');
+                    logsList.style.listStyle = 'none';
+                    logsList.style.padding = '0';
+                    
+                    data.slice(0, 5).forEach(log => {
+                        const logItem = document.createElement('li');
+                        logItem.style.padding = '10px';
+                        logItem.style.borderBottom = '1px solid #eee';
+                        logItem.innerHTML = `
+                            <p><strong>${log.timestamp}</strong> - ${log.eventType}</p>
+                            <p>Status: ${log.statusCode} | Path: ${log.path}</p>
+                        `;
+                        logsList.appendChild(logItem);
+                    });
+                    
+                    logsDiv.innerHTML = '';
+                    logsDiv.appendChild(logsList);
+                })
+                .catch(error => {
+                    console.error('Error fetching logs:', error);
+                    document.getElementById('logs').textContent = 'Failed to load logs.';
+                });
+            
+            // Handle logout
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+            });
+        });
+    </script>
+</body>
+</html>

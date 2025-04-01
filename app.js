@@ -7,8 +7,9 @@ const admin = require('firebase-admin');
 const rateLimit = require('express-rate-limit');
 
 // Initialize Firebase
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || require('./serviceAccountKey.json'));
 admin.initializeApp({
-    credential: admin.credential.cert(require('./serviceAccountKey.json'))
+    credential: admin.credential.cert(serviceAccount)
 });
 const db = admin.firestore();
 
@@ -19,7 +20,7 @@ app.use(cors());
 // Serve static files from the public directory
 app.use(express.static('public'));
 
-const SECRET_KEY = 'your_secret_key';
+const SECRET_KEY = process.env.SECRET_KEY || 'your_secret_key';
 const users = [];
 
 // GET /getInfo
@@ -221,7 +222,7 @@ app.use('/login', limiter);
 app.use('/register', limiter);
 app.use('/verify-mfa', limiter);
 
-const PORT = 3001;
+const PORT = 3002;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
